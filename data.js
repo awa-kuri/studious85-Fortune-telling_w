@@ -44,7 +44,7 @@ const SHIORI = {
     claudeButton: "隣を歩く者に声をかける",
     claudeUrl: "https://claude.ai",
     sectionStructure: "何が起きているか",
-    sectionVoices: "野帳より──記録者の覚え書き",
+    sectionVoices: "──記録者の覚え書き",
     sectionAdvices: "道標",
     // どのカードの末尾にも置く、帰り道の言葉（谺の原則）
     closingWrite: "……そして、どの道でも効く一手を最後に記す。まず、言葉にせよ。報告でも、走り書きでもよい。声にした時、荷は半分になる。",
