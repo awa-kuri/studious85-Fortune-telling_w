@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#e7e9e6">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>枝折り</title>
+<style>
+  /* ============================================
+     枝折り ── ブナの森
+     ベース：幹の銀灰 / 光：梢の淡緑 / 苔の深緑
+     アクセント：オオルリの瑠璃（点でのみ使う）
+     ============================================ */
+  :root {
+    --bark:       #e7e9e6;  /* 幹の銀灰（背景） */
+    --bark-deep:  #d9ddd6;
+    --paper:      #f5f6f3;  /* 頁 */
+    --ink:        #2f342f;  /* 墨 */
+    --ink-soft:   #5c655d;
+    --leaf-light: #dfe8d8;  /* 梢を透かした光 */
+    --leaf:       #b7c9ad;
+    --moss:       #4c5f4e;  /* 苔 */
+    --ruri:       #2255a4;  /* 瑠璃 */
+    --line:       #c9cec5;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html {
+    background: var(--bark);
+    overscroll-behavior: none;
+  }
+
+  body {
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse 120% 55% at 50% -10%, var(--leaf-light) 0%, rgba(223,232,216,0) 60%),
+      linear-gradient(180deg, var(--bark) 0%, var(--bark-deep) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    min-height: 100dvh;
+    line-height: 1.95;
+    letter-spacing: 0.04em;
+    padding:
+      calc(env(safe-area-inset-top, 0px) + 28px)
+      calc(env(safe-area-inset-right, 0px) + 20px)
+      calc(env(safe-area-inset-bottom, 0px) + 40px)
+      calc(env(safe-area-inset-left, 0px) + 20px);
+  }
+
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ---- 画面の入れ替わり ---- */
+  .screen { animation: appear .55s ease both; }
+  @keyframes appear {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ---- 常設の小さな題 ---- */
+  .brand {
+    text-align: center;           /* 一行のみ：中央可 */
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;
+    margin-bottom: 26px;
+    user-select: none;
+  }
+
+  /* ---- 表紙 ---- */
+  .cover { padding-top: 9vh; }
+  .cover .title {
+    text-align: center;           /* 一行のみ：中央可 */
+    font-size: 2.5rem;
+    font-weight: 600;
+    letter-spacing: 0.42em;
+    text-indent: 0.42em;
+    margin-bottom: 6px;
+  }
+  .cover .subtitle {
+    text-align: center;           /* 一行のみ：中央可 */
+    font-size: 0.85rem;
+    color: var(--moss);
+    letter-spacing: 0.22em;
+    text-indent: 0.22em;
+    margin-bottom: 44px;
+  }
+  .cover .intro p {
+    text-align: left;             /* 長文は必ず左揃え */
+    font-size: 0.98rem;
+    color: var(--ink-soft);
+    margin-bottom: 1.15em;
+  }
+
+  /* ---- 質問 ---- */
+  .q-text {
+    text-align: left;             /* 折り返しがあるため左揃え */
+    font-size: 1.08rem;
+    margin: 6px 2px 30px;
+  }
+
+  .options { display: flex; flex-direction: column; gap: 14px; }
+
+  button.opt {
+    display: block;
+    width: 100%;
+    text-align: left;             /* 選択肢は文になるため左揃え */
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    letter-spacing: 0.03em;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 15px 18px;
+    cursor: pointer;
+    transition: background .2s, border-color .2s, transform .08s;
+  }
+  button.opt:active {
+    background: var(--leaf-light);
+    border-color: var(--leaf);
+    transform: scale(0.985);
+  }
+
+  /* ---- 戻る・再出発などの小さな釦 ---- */
+  .minor-nav { margin-top: 34px; text-align: center; }  /* 釦のみ：中央可 */
+  button.minor {
+    font-family: inherit;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.15em;
+    padding: 8px 14px;
+  }
+
+  /* ---- 結果カード ---- */
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 30px 24px 26px;
+    box-shadow: 0 2px 14px rgba(47,52,47,0.07);
+  }
+
+  .card .p-name {
+    text-align: center;           /* 一語のみ：中央可 */
+    font-size: 1.9rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    margin-bottom: 4px;
+  }
+  .card .p-metaphor {
+    text-align: center;           /* 短句のみ：中央可 */
+    font-size: 0.85rem;
+    color: var(--moss);
+    letter-spacing: 0.12em;
+    margin-bottom: 24px;
+  }
+  .card .rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--leaf) 30%, var(--leaf) 70%, transparent);
+    border: none;
+    margin: 0 auto 24px;
+    width: 72%;
+  }
+
+  .card .scenery {
+    text-align: left;
+    font-size: 1.0rem;
+    margin-bottom: 22px;
+  }
+
+  .origin-note {
+    text-align: left;
+    font-size: 0.93rem;
+    color: var(--moss);
+    background: var(--leaf-light);
+    border-left: 3px solid var(--leaf);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 15px;
+    margin-bottom: 22px;
+  }
+
+  .sec-label {
+    text-align: left;
+    font-size: 0.78rem;
+    color: var(--moss);
+    letter-spacing: 0.25em;
+    margin: 26px 0 10px;
+  }
+
+  .card .structure {
+    text-align: left;
+    font-size: 0.95rem;
+    color: var(--ink);
+  }
+
+  .voice {
+    text-align: left;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    background: rgba(223,232,216,0.4);
+    border-left: 2px dashed var(--leaf);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+  }
+
+  .advice {
+    text-align: left;
+    font-size: 0.95rem;
+    border-left: 3px solid var(--moss);
+    border-radius: 0 8px 8px 0;
+    background: rgba(245,246,243,0.6);
+    padding: 11px 15px;
+    margin-bottom: 12px;
+  }
+
+  /* ---- 帰り道 ---- */
+  .closing {
+    text-align: left;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    margin: 30px 2px 0;
+  }
+  .closing .claude-line {
+    margin-top: 14px;
+    color: var(--ink);
+  }
+  .claude-wrap { margin-top: 18px; text-align: center; }  /* 釦のみ：中央可 */
+  a.claude-btn {
+    display: inline-block;
+    font-size: 0.9rem;
+    color: var(--paper);
+    background: var(--ruri);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    border-radius: 24px;
+    padding: 11px 26px;
+    transition: opacity .2s, transform .08s;
+  }
+  a.claude-btn:active { opacity: 0.85; transform: scale(0.97); }
+
+  /* ---- 表紙の出発釦 ---- */
+  .start-wrap { margin-top: 40px; text-align: center; }   /* 釦のみ：中央可 */
+  button.start {
+    font-family: inherit;
+    font-size: 1.0rem;
+    color: var(--paper);
+    background: var(--moss);
+    border: none;
+    border-radius: 26px;
+    padding: 13px 46px;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    cursor: pointer;
+    transition: opacity .2s, transform .08s;
+  }
+  button.start:active { opacity: 0.85; transform: scale(0.97); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="data.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  const app = document.getElementById("app");
+  const UI = SHIORI.ui;
+
+  // 診断の歩み：state を stack に積んで戻れるようにする
+  let state = { qid: "q_start", candidate: null };
+  let stack = [];
+
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function render(html) {
+    app.innerHTML = '<div class="screen">' + html + "</div>";
+    window.scrollTo(0, 0);
+  }
+
+  // ---- 表紙 ----
+  function showCover() {
+    state = { qid: "q_start", candidate: null };
+    stack = [];
+    render(
+      '<div class="cover">' +
+        '<div class="title">' + esc(UI.title) + "</div>" +
+        '<div class="subtitle">' + esc(UI.subtitle) + "</div>" +
+        '<div class="intro">' +
+          UI.intro.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") +
+        "</div>" +
+        '<div class="start-wrap"><button class="start" id="btn-start">' + esc(UI.startButton) + "</button></div>" +
+      "</div>"
+    );
+    document.getElementById("btn-start").addEventListener("click", function () {
+      showQuestion("q_start");
+    });
+  }
+
+  // ---- 質問 ----
+  function showQuestion(qid) {
+    state.qid = qid;
+    const q = SHIORI.questions[qid];
+    render(
+      '<div class="brand">' + esc(UI.title) + "</div>" +
+      '<p class="q-text">' + esc(q.text) + "</p>" +
+      '<div class="options">' +
+        q.options.map(function (o, i) {
+          return '<button class="opt" data-i="' + i + '">' + esc(o.label) + "</button>";
+        }).join("") +
+      "</div>" +
+      '<div class="minor-nav"><button class="minor" id="btn-back">' +
+        (stack.length ? "……一歩戻る" : "……表紙に戻る") +
+      "</button></div>"
+    );
+
+    Array.prototype.forEach.call(document.querySelectorAll("button.opt"), function (btn) {
+      btn.addEventListener("click", function () {
+        const opt = q.options[Number(btn.dataset.i)];
+        stack.push({ qid: state.qid, candidate: state.candidate });
+        if (opt.candidate) state.candidate = opt.candidate;
+        if (opt.result) {
+          showResult(opt.result);
+        } else {
+          showQuestion(opt.next);
+        }
+      });
+    });
+
+    document.getElementById("btn-back").addEventListener("click", function () {
+      if (stack.length) {
+        const prev = stack.pop();
+        state.candidate = prev.candidate;
+        showQuestion(prev.qid);
+      } else {
+        showCover();
+      }
+    });
+  }
+
+  // ---- 判定の解決 ----
+  function resolvePattern(result) {
+    if (result === "@candidate") {
+      return { id: state.candidate || "none", origin: null };
+    }
+    if (result === "@blame") {
+      return {
+        id: "nise",
+        origin: state.candidate ? SHIORI.originNotes[state.candidate] || null : null,
+      };
+    }
+    return { id: result, origin: null };
+  }
+
+  // ---- 結果カード ----
+  function showResult(result) {
+    const r = resolvePattern(result);
+    const p = SHIORI.patterns[r.id];
+
+    let html =
+      '<div class="brand">' + esc(UI.title) + "</div>" +
+      '<div class="card">' +
+        '<div class="p-name">' + esc(p.name) + "</div>" +
+        '<div class="p-metaphor">' + esc(p.metaphor) + "</div>" +
+        '<hr class="rule">' +
+        '<p class="scenery">' + esc(p.scenery) + "</p>";
+
+    if (r.origin) {
+      html += '<div class="origin-note">' + esc(r.origin) + "</div>";
+    }
+
+    html +=
+      '<div class="sec-label">── ' + esc(UI.sectionStructure) + "</div>" +
+      '<p class="structure">' + esc(p.structure) + "</p>";
+
+    if (p.voices && p.voices.length) {
+      html += '<div class="sec-label">── ' + esc(UI.sectionVoices) + "</div>";
+      html += p.voices.map(function (v) {
+        return '<div class="voice">' + esc(v) + "</div>";
+      }).join("");
+    }
+
+    if (p.advices && p.advices.length) {
+      html += '<div class="sec-label">── ' + esc(UI.sectionAdvices) + "</div>";
+      html += p.advices.map(function (a) {
+        return '<div class="advice">' + esc(a) + "</div>";
+      }).join("");
+    }
+
+    html += "</div>"; // card
+
+    html +=
+      '<div class="closing">' +
+        "<p>" + esc(UI.closingWrite) + "</p>" +
+        '<p class="claude-line">' + esc(UI.closingClaude) + "</p>" +
+        '<div class="claude-wrap"><a class="claude-btn" href="' + UI.claudeUrl + '" target="_blank" rel="noopener">' +
+          esc(UI.claudeButton) +
+        "</a></div>" +
+      "</div>" +
+      '<div class="minor-nav"><button class="minor" id="btn-again">' + esc(UI.againButton) + "</button></div>";
+
+    render(html);
+    document.getElementById("btn-again").addEventListener("click", showCover);
+  }
+
+  // ---- Service Worker（http(s)配信時のみ） ----
+  if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () { /* 静かに諦める */ });
+    });
+  }
+
+  showCover();
+})();
+</script>
+</body>
+</html>
