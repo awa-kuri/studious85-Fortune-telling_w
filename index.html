@@ -17,15 +17,15 @@
      アクセント：オオルリの瑠璃（点でのみ使う）
      ============================================ */
   :root {
-    --bark:       #e7e9e6;  /* 幹の銀灰（背景） */
+    --bark:       #e7e9e6;
     --bark-deep:  #d9ddd6;
-    --paper:      #f5f6f3;  /* 頁 */
-    --ink:        #2f342f;  /* 墨 */
+    --paper:      #f5f6f3;
+    --ink:        #2f342f;
     --ink-soft:   #5c655d;
-    --leaf-light: #dfe8d8;  /* 梢を透かした光 */
+    --leaf-light: #dfe8d8;
     --leaf:       #b7c9ad;
-    --moss:       #4c5f4e;  /* 苔 */
-    --ruri:       #2255a4;  /* 瑠璃 */
+    --moss:       #4c5f4e;
+    --ruri:       #2255a4;
     --line:       #c9cec5;
   }
 
@@ -39,10 +39,7 @@
   body {
     font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", serif;
     color: var(--ink);
-    background:
-      radial-gradient(ellipse 120% 55% at 50% -10%, var(--leaf-light) 0%, rgba(223,232,216,0) 60%),
-      linear-gradient(180deg, var(--bark) 0%, var(--bark-deep) 100%);
-    background-attachment: fixed;
+    background: var(--bark);
     min-height: 100vh;
     min-height: 100dvh;
     line-height: 1.95;
@@ -52,11 +49,40 @@
       calc(env(safe-area-inset-right, 0px) + 20px)
       calc(env(safe-area-inset-bottom, 0px) + 40px)
       calc(env(safe-area-inset-left, 0px) + 20px);
+    position: relative;
+  }
+
+  /* ---- 背景の梢 ---- */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url("bg.png") center top / cover no-repeat;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 背景の上にグラデーションを重ねて下部をフェードアウト */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 40%,
+      var(--bark) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
   }
 
   #app {
     max-width: 480px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
   }
 
   /* ---- 画面の入れ替わり ---- */
@@ -68,7 +94,7 @@
 
   /* ---- 常設の小さな題 ---- */
   .brand {
-    text-align: center;           /* 一行のみ：中央可 */
+    text-align: center;
     font-size: 0.8rem;
     color: var(--ink-soft);
     letter-spacing: 0.5em;
@@ -78,9 +104,23 @@
   }
 
   /* ---- 表紙 ---- */
-  .cover { padding-top: 9vh; }
+  .cover { padding-top: 5vh; }
+
+  .cover-icon {
+    display: block;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 24px;
+    opacity: 0.85;
+    animation: icon-in .8s ease both;
+  }
+  @keyframes icon-in {
+    from { opacity: 0; transform: scale(0.9); }
+    to   { opacity: 0.85; transform: none; }
+  }
+
   .cover .title {
-    text-align: center;           /* 一行のみ：中央可 */
+    text-align: center;
     font-size: 2.5rem;
     font-weight: 600;
     letter-spacing: 0.42em;
@@ -88,7 +128,7 @@
     margin-bottom: 6px;
   }
   .cover .subtitle {
-    text-align: center;           /* 一行のみ：中央可 */
+    text-align: center;
     font-size: 0.85rem;
     color: var(--moss);
     letter-spacing: 0.22em;
@@ -96,7 +136,7 @@
     margin-bottom: 44px;
   }
   .cover .intro p {
-    text-align: left;             /* 長文は必ず左揃え */
+    text-align: left;
     font-size: 0.98rem;
     color: var(--ink-soft);
     margin-bottom: 1.15em;
@@ -104,7 +144,7 @@
 
   /* ---- 質問 ---- */
   .q-text {
-    text-align: left;             /* 折り返しがあるため左揃え */
+    text-align: left;
     font-size: 1.08rem;
     margin: 6px 2px 30px;
   }
@@ -114,27 +154,29 @@
   button.opt {
     display: block;
     width: 100%;
-    text-align: left;             /* 選択肢は文になるため左揃え */
+    text-align: left;
     font-family: inherit;
     font-size: 0.95rem;
     line-height: 1.8;
     letter-spacing: 0.03em;
     color: var(--ink);
-    background: var(--paper);
+    background: rgba(245,246,243,0.85);
     border: 1px solid var(--line);
     border-radius: 10px;
     padding: 15px 18px;
     cursor: pointer;
     transition: background .2s, border-color .2s, transform .08s;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
   }
   button.opt:active {
-    background: var(--leaf-light);
+    background: rgba(223,232,216,0.9);
     border-color: var(--leaf);
     transform: scale(0.985);
   }
 
   /* ---- 戻る・再出発などの小さな釦 ---- */
-  .minor-nav { margin-top: 34px; text-align: center; }  /* 釦のみ：中央可 */
+  .minor-nav { margin-top: 34px; text-align: center; }
   button.minor {
     font-family: inherit;
     font-size: 0.82rem;
@@ -148,15 +190,28 @@
 
   /* ---- 結果カード ---- */
   .card {
-    background: var(--paper);
+    background: rgba(245,246,243,0.92);
     border: 1px solid var(--line);
     border-radius: 14px;
-    padding: 30px 24px 26px;
+    overflow: hidden;
     box-shadow: 0 2px 14px rgba(47,52,47,0.07);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .card-header-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    opacity: 0.6;
+  }
+
+  .card-body {
+    padding: 24px 24px 26px;
   }
 
   .card .p-name {
-    text-align: center;           /* 一語のみ：中央可 */
+    text-align: center;
     font-size: 1.9rem;
     font-weight: 600;
     letter-spacing: 0.3em;
@@ -164,7 +219,7 @@
     margin-bottom: 4px;
   }
   .card .p-metaphor {
-    text-align: center;           /* 短句のみ：中央可 */
+    text-align: center;
     font-size: 0.85rem;
     color: var(--moss);
     letter-spacing: 0.12em;
@@ -172,10 +227,10 @@
   }
   .card .rule {
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--leaf) 30%, var(--leaf) 70%, transparent);
+    background: linear-gradient(90deg, transparent, var(--leaf) 20%, var(--leaf) 80%, transparent);
     border: none;
     margin: 0 auto 24px;
-    width: 72%;
+    width: 80%;
   }
 
   .card .scenery {
@@ -188,7 +243,7 @@
     text-align: left;
     font-size: 0.93rem;
     color: var(--moss);
-    background: var(--leaf-light);
+    background: rgba(223,232,216,0.5);
     border-left: 3px solid var(--leaf);
     border-radius: 0 8px 8px 0;
     padding: 12px 15px;
@@ -213,7 +268,7 @@
     text-align: left;
     font-size: 0.9rem;
     color: var(--ink-soft);
-    background: rgba(223,232,216,0.4);
+    background: rgba(223,232,216,0.3);
     border-left: 2px dashed var(--leaf);
     border-radius: 0 8px 8px 0;
     padding: 10px 14px;
@@ -225,7 +280,7 @@
     font-size: 0.95rem;
     border-left: 3px solid var(--moss);
     border-radius: 0 8px 8px 0;
-    background: rgba(245,246,243,0.6);
+    background: rgba(245,246,243,0.5);
     padding: 11px 15px;
     margin-bottom: 12px;
   }
@@ -241,7 +296,7 @@
     margin-top: 14px;
     color: var(--ink);
   }
-  .claude-wrap { margin-top: 18px; text-align: center; }  /* 釦のみ：中央可 */
+  .claude-wrap { margin-top: 18px; text-align: center; }
   a.claude-btn {
     display: inline-block;
     font-size: 0.9rem;
@@ -256,7 +311,7 @@
   a.claude-btn:active { opacity: 0.85; transform: scale(0.97); }
 
   /* ---- 表紙の出発釦 ---- */
-  .start-wrap { margin-top: 40px; text-align: center; }   /* 釦のみ：中央可 */
+  .start-wrap { margin-top: 40px; text-align: center; }
   button.start {
     font-family: inherit;
     font-size: 1.0rem;
@@ -271,6 +326,15 @@
     transition: opacity .2s, transform .08s;
   }
   button.start:active { opacity: 0.85; transform: scale(0.97); }
+
+  /* ---- カード内の小さなアイコン ---- */
+  .card-icon-small {
+    display: block;
+    width: 36px;
+    height: 36px;
+    margin: 0 auto 8px;
+    opacity: 0.5;
+  }
 </style>
 </head>
 <body>
@@ -281,12 +345,11 @@
 (function () {
   "use strict";
 
-  const app = document.getElementById("app");
-  const UI = SHIORI.ui;
+  var app = document.getElementById("app");
+  var UI = SHIORI.ui;
 
-  // 診断の歩み：state を stack に積んで戻れるようにする
-  let state = { qid: "q_start", candidate: null };
-  let stack = [];
+  var state = { qid: "q_start", candidate: null };
+  var stack = [];
 
   function esc(s) {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -303,6 +366,7 @@
     stack = [];
     render(
       '<div class="cover">' +
+        '<img class="cover-icon" src="icon.png" alt="" width="100" height="100">' +
         '<div class="title">' + esc(UI.title) + "</div>" +
         '<div class="subtitle">' + esc(UI.subtitle) + "</div>" +
         '<div class="intro">' +
@@ -319,7 +383,7 @@
   // ---- 質問 ----
   function showQuestion(qid) {
     state.qid = qid;
-    const q = SHIORI.questions[qid];
+    var q = SHIORI.questions[qid];
     render(
       '<div class="brand">' + esc(UI.title) + "</div>" +
       '<p class="q-text">' + esc(q.text) + "</p>" +
@@ -335,7 +399,7 @@
 
     Array.prototype.forEach.call(document.querySelectorAll("button.opt"), function (btn) {
       btn.addEventListener("click", function () {
-        const opt = q.options[Number(btn.dataset.i)];
+        var opt = q.options[Number(btn.dataset.i)];
         stack.push({ qid: state.qid, candidate: state.candidate });
         if (opt.candidate) state.candidate = opt.candidate;
         if (opt.result) {
@@ -348,7 +412,7 @@
 
     document.getElementById("btn-back").addEventListener("click", function () {
       if (stack.length) {
-        const prev = stack.pop();
+        var prev = stack.pop();
         state.candidate = prev.candidate;
         showQuestion(prev.qid);
       } else {
@@ -373,16 +437,18 @@
 
   // ---- 結果カード ----
   function showResult(result) {
-    const r = resolvePattern(result);
-    const p = SHIORI.patterns[r.id];
+    var r = resolvePattern(result);
+    var p = SHIORI.patterns[r.id];
 
-    let html =
+    var html =
       '<div class="brand">' + esc(UI.title) + "</div>" +
       '<div class="card">' +
-        '<div class="p-name">' + esc(p.name) + "</div>" +
-        '<div class="p-metaphor">' + esc(p.metaphor) + "</div>" +
-        '<hr class="rule">' +
-        '<p class="scenery">' + esc(p.scenery) + "</p>";
+        '<img class="card-header-img" src="card-header.png" alt="" loading="lazy">' +
+        '<div class="card-body">' +
+          '<div class="p-name">' + esc(p.name) + "</div>" +
+          '<div class="p-metaphor">' + esc(p.metaphor) + "</div>" +
+          '<hr class="rule">' +
+          '<p class="scenery">' + esc(p.scenery) + "</p>";
 
     if (r.origin) {
       html += '<div class="origin-note">' + esc(r.origin) + "</div>";
@@ -406,6 +472,7 @@
       }).join("");
     }
 
+    html += "</div>"; // card-body
     html += "</div>"; // card
 
     html +=
@@ -422,10 +489,10 @@
     document.getElementById("btn-again").addEventListener("click", showCover);
   }
 
-  // ---- Service Worker（http(s)配信時のみ） ----
+  // ---- Service Worker ----
   if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
     window.addEventListener("load", function () {
-      navigator.serviceWorker.register("sw.js").catch(function () { /* 静かに諦める */ });
+      navigator.serviceWorker.register("sw.js").catch(function () {});
     });
   }
 
